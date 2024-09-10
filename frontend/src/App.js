@@ -2,7 +2,11 @@ import React, { Component } from 'react';
 import './App.css';
 import Results from './components/Results';
 import NewName from './components/NewName';
-import {Card} from 'react-bootstrap';
+import SmallCalendar from './components/SmallCalendar.tsx';
+import Calendar from './components/Calendar.tsx';
+
+// import 'bootstrap/dist/css/bootstrap.css';
+import { Card, Row, Col } from 'react-bootstrap';
 
 class App extends Component {
   constructor(props) {
@@ -61,14 +65,19 @@ class App extends Component {
 
   render() {
     return (
-      <div className="App">
-        <header className="App-header">
+      <div>
+        <Row>
+          <Card>
+            <Calendar />
+          </Card>
+        </Row>
+        <Row>
           <NewName handleChange={this.handleChange} handleSubmit={this.handleSubmit} value={this.state.name} />
           {this.state.loading ? <h1>Loading</h1> : <Results names={this.state.names} onDelete={this.handleDelete} />}
-          <Card style={{backgroundColor: '#D9D9D9', width:'50vw', alignSelf:'flex-start'}}>
-            <p>hi</p>
-          </Card>
-        </header>
+        </Row>
+        <Row>
+          <SmallCalendar />
+        </Row>
       </div>
     );
   }
