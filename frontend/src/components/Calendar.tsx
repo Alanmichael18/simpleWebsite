@@ -6,22 +6,66 @@ interface HourColors {
     [date: string]: string[];
 }
 
+// Utility function to compare two HourColors objects
+const getChangedColors = (original: HourColors, updated: HourColors) => {
+    const changedColors: HourColors = {};
+
+    Object.keys(updated).forEach(date => {
+        updated[date].forEach((color, index) => {
+            if (color !== original[date][index]) {
+                if (!changedColors[date]) {
+                    changedColors[date] = [...original[date]];
+                }
+                changedColors[date][index] = color;
+            }
+        });
+    });
+
+    return changedColors;
+};
+
+// Initialize default colors for one week
+const initializeDefaultWeek = (): HourColors => {
+    const defaultColors: HourColors = {};
+    const today = new Date();
+    
+    // Create default colors for 7 days
+    for (let i = 0; i < 7; i++) {
+        const date = new Date(today);
+        date.setDate(today.getDate() + i);
+        const dateString = date.toISOString().split('T')[0];
+        defaultColors[dateString] = Array(24).fill('#FFFFFF'); // Default white for each hour
+    }
+    
+    return defaultColors;
+};
+
 export default function Calendar() {
     const [dailyColors, setDailyColors] = useState<HourColors>({});
     const [editedColors, setEditedColors] = useState<HourColors>({});
     const [expandedCards, setExpandedCards] = useState<string[]>([]);
     const hours = Array.from({ length: 24 }, (_, index) => `${index}:00`);
 
-    // Fetch the daily colors from the Flask backend
     useEffect(() => {
         const fetchDailyColors = async () => {
             try {
                 const response = await fetch(`${HOST}/daily_colors`);
                 const data = await response.json();
-                setDailyColors(data);
-                setEditedColors(data); // Initialize editedColors with fetched data
+
+                if (Object.keys(data).length === 0) {
+                    // If no data is returned from the backend, initialize default colors
+                    const defaultColors = initializeDefaultWeek();
+                    setDailyColors(defaultColors);
+                    setEditedColors(defaultColors);
+                } else {
+                    setDailyColors(data);
+                    setEditedColors(data); // Initialize editedColors with fetched data
+                }
             } catch (error) {
                 console.error('Error fetching daily colors:', error);
+                const defaultColors = initializeDefaultWeek();
+                setDailyColors(defaultColors);
+                setEditedColors(defaultColors);
             }
         };
 
@@ -39,13 +83,21 @@ export default function Calendar() {
     };
 
     const handleSubmit = async () => {
+        const changedColors = getChangedColors(dailyColors, editedColors);
+        console.log('Submitting data:', editedColors); 
+        
+        if (Object.keys(changedColors).length === 0) {
+            alert('No changes to submit!');
+            return;
+        }
+
         try {
             const response = await fetch(`${HOST}/update_colors`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(editedColors),
+                body: JSON.stringify(changedColors),
             });
 
             if (response.ok) {
@@ -93,10 +145,8 @@ export default function Calendar() {
     const handleCardClick = (date: string) => {
         setExpandedCards(prev => {
             if (prev.includes(date)) {
-                // Remove date from expandedCards if already expanded
                 return prev.filter(d => d !== date);
             } else {
-                // Add date to expandedCards
                 return [...prev, date];
             }
         });
@@ -105,7 +155,6 @@ export default function Calendar() {
     return (
         <div>
             <Row style={containerStyle}>
-                {/* Date Columns */}
                 {Object.keys(dailyColors).map(date => (
                     <Col key={date} style={cardStyle}>
                         <Card style={{ height: '100%' }}>
