@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
 import './App.css';
-import Results from './components/Results';
-import NewName from './components/NewName';
+import Results from './components/JUNK/Results.js';
+import NewName from './components/JUNK/NewName.js';
 import SmallCalendar from './components/SmallCalendar.tsx';
-import Calendar from './components/Calendar.tsx';
+import Scheduler from './components/Scheduler.tsx';
 
 // import 'bootstrap/dist/css/bootstrap.css';
 import { Card, Row, Col } from 'react-bootstrap';
@@ -65,19 +65,8 @@ class App extends Component {
 
   render() {
     return (
-      <div>
-        <Row>
-          <Card>
-            <Calendar />
-          </Card>
-        </Row>
-        <Row>
-          <NewName handleChange={this.handleChange} handleSubmit={this.handleSubmit} value={this.state.name} />
-          {this.state.loading ? <h1>Loading</h1> : <Results names={this.state.names} onDelete={this.handleDelete} />}
-        </Row>
-        <Row>
-          <SmallCalendar />
-        </Row>
+      <div style={{backgroundColor: '#292929', height: '100vh'}}>
+        <Scheduler />
       </div>
     );
   }
